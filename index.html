@@ -1,3 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog Social</title>
+
+<style>
+body{font-family:Arial;margin:0;background:#eef2f7}
+header{background:#111;color:white;padding:20px;text-align:center}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+input,textarea{width:100%;padding:10px;margin-top:10px;margin-bottom:10px}
+button{padding:10px 15px;border:none;background:#2563eb;color:white;border-radius:6px;cursor:pointer}
+.post{border-bottom:1px solid #ddd;padding:10px 0}
+.small{font-size:12px;color:gray}
+#logout{float:right;background:#ef4444}
+</style>
+
+</head>
+<body>
+
+<header>
+<h1>Meu Blog Social</h1>
+<button id="logout" onclick="logout()" style="display:none">Sair</button>
+</header>
+
+<div class="container">
+
+<div id="auth" class="card">
+<h2>Login</h2>
+<input id="loginUser" placeholder="Usuário">
+<input id="loginPass" type="password" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+
+<h3>Criar conta</h3>
+<input id="regUser" placeholder="Usuário">
+<input id="regPass" type="password" placeholder="Senha">
+<button onclick="register()">Registrar</button>
+</div>
+
+<div id="blog" style="display:none">
+
+<div class="card">
+<h2>Novo Post</h2>
+<input id="titulo" placeholder="Título">
+<textarea id="conteudo" placeholder="Escreva algo..."></textarea>
+<button onclick="criarPost()">Publicar</button>
+</div>
+
+<div class="card">
+<h2>Posts</h2>
+<div id="posts"></div>
+</div>
+
+</div>
+
+</div>
+
 <script>
 
 let users = JSON.parse(localStorage.getItem("users")) || []
@@ -7,6 +66,90 @@ let currentUser = localStorage.getItem("currentUser")
 function save(){
 localStorage.setItem("users",JSON.stringify(users))
 localStorage.setItem("posts",JSON.stringify(posts))
+}
+
+function register(){
+let u=document.getElementById("regUser").value
+let p=document.getElementById("regPass").value
+
+if(!u||!p){alert("Preencha tudo");return}
+
+if(users.find(x=>x.user===u)){
+alert("Usuário já existe")
+return
+}
+
+users.push({user:u,pass:p})
+save()
+alert("Conta criada")
+}
+
+function login(){
+let u=document.getElementById("loginUser").value
+let p=document.getElementById("loginPass").value
+
+let found=users.find(x=>x.user===u && x.pass===p)
+
+if(!found){
+alert("Login inválido")
+return
+}
+
+currentUser=u
+localStorage.setItem("currentUser",u)
+carregarBlog()
+}
+
+function logout(){
+localStorage.removeItem("currentUser")
+location.reload()
+}
+
+function carregarBlog(){
+document.getElementById("auth").style.display="none"
+document.getElementById("blog").style.display="block"
+document.getElementById("logout").style.display="block"
+mostrarPosts()
+}
+
+function criarPost(){
+let t=document.getElementById("titulo").value
+let c=document.getElementById("conteudo").value
+
+if(!t||!c){alert("Preencha tudo");return}
+
+posts.unshift({
+titulo:t,
+conteudo:c,
+autor:currentUser,
+data:new Date().toLocaleString()
+})
+
+save()
+mostrarPosts()
+
+document.getElementById("titulo").value=""
+document.getElementById("conteudo").value=""
+}
+
+function mostrarPosts(){
+let area=document.getElementById("posts")
+area.innerHTML=""
+
+posts.forEach(p=>{
+let div=document.createElement("div")
+div.className="post"
+
+div.innerHTML=`<h3>${p.titulo}</h3>
+<p>${p.conteudo}</p>
+<div class="small">por ${p.autor} • ${p.data}</div>`
+
+area.appendChild(div)
+})
+}
+
+if(currentUser){
+carregarBlog()
 }
 
 </script>
